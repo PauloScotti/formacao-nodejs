@@ -65,8 +65,22 @@ const blocksList = [
   {
     type: "CONFRONTO",
     atribute: "power",
-    winnerPoints: 0,
-    loserPoints: 1,
+    weappons: [
+      {
+      name: "casco",
+      damage: 1,
+    },
+    {
+      name: "bomba",
+      damage: 2,
+    },
+    {
+      name: "estrela",
+      damage: 3,
+    }
+  ],
+    winnerPoints: 1,
+    loserPoints: 0,
   },
 ];
 
@@ -98,6 +112,13 @@ async function blocks() {
   return block;
 }
 
+async function chooseWeapon() {
+  const weapons = blocksList.find((b) => b.type === "CONFRONTO").weappons;
+  const weapon = weapons[Math.floor(Math.random() * weapons.length)];
+  console.log(`Arma escolhida: ${weapon.name} com dano de ${weapon.damage}`);
+  return weapon;
+}
+
 async function calculatePoints(player, block) {
   const playerAttribute = player[block.atribute];
   const diceRoll = await rollDice();
@@ -121,10 +142,13 @@ async function determineRoundWinner(playersList, block) {
   }
   console.log(`O vencedor da rodada é ${winner.name} com ${maxPoints} pontos!`);
   winner.points += block.winnerPoints;
-  playersList.forEach((playerName) => {
+  playersList.forEach(async (playerName) => {
     const player = players.find((p) => p.name === playerName);
-    if (player.name !== winner.name && player.points > 0) {
-      player.points -= block.loserPoints;
+    if (player.name !== winner.name && player.points > 0 && block.type === "CONFRONTO") {
+      const weapon = await chooseWeapon();
+      player.points = Math.max(0, player.points - weapon.damage);
+      console.log(`${player.name} perdeu ${weapon.damage} pontos e agora tem ${player.points} pontos.`);
+      console.log(`${winner.name} ganhou ${block.winnerPoints} pontos e agora tem ${winner.points} pontos.`);
     }
   });
 }
